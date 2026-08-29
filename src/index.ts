@@ -30,16 +30,16 @@ if (!token)
 
 const bot = new Bot(token);
 
-const MENU_TEXT = `👋 Добрый день! Я FAQ-бот платформы <b>WorkDo</b>.
-Расскажу о тарифах, возможностях и платформе. Выберите, что интересно:`;
+const MENU_TEXT = `Добрый день. Это справочный бот платформы <b>WorkDo</b>.
+Содержит информацию о тарифах, возможностях и о платформе. Выберите нужный раздел в меню ниже.`;
 
 const mainMenu = new InlineKeyboard()
-  .text("📊 Тарифы", "prices")
-  .text("⚙️ Возможности", "features")
+  .text("Тарифы", "prices")
+  .text("Возможности", "features")
   .row()
-  .text("ℹ️ О платформе", "about");
+  .text("О платформе", "about");
 
-const backMenu = new InlineKeyboard().text("⬅️ В меню", "menu");
+const backMenu = new InlineKeyboard().text("← В меню", "menu");
 
 async function showMenu(ctx: Context, chatId: number) {
   await ctx.api.sendMessage(chatId, MENU_TEXT, { parse_mode: "HTML", reply_markup: mainMenu });
@@ -51,12 +51,12 @@ bot.command("start", async (ctx: Context) => {
 
 bot.command("help", async (ctx: Context) => {
   await ctx.reply(
-    `Я отвечаю на вопросы о <b>WorkDo</b>.\n\n` +
+    `Справочный бот платформы <b>WorkDo</b>.\n\n` +
       `Команды:\n` +
       `/prices — тарифы (BYN)\n` +
-      `/features — возможности\n` +
+      `/features — возможности платформы\n` +
       `/about — о платформе\n` +
-      `/help — эта справка`,
+      `/help — данная справка`,
     { parse_mode: "HTML" }
   );
 });
