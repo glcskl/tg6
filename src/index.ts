@@ -1,6 +1,6 @@
 import "dotenv/config";
 import express from "express";
-import { Bot, InlineKeyboard, webhookCallback } from "grammY";
+import { Bot, type BotError, type Context, InlineKeyboard, webhookCallback } from "grammy";
 import { ANSWERS, KEYWORD_REPLIES, type AnswerKey } from "./faq";
 
 const token = process.env.BOT_TOKEN;
@@ -9,7 +9,7 @@ if (!token) throw new Error("BOT_TOKEN is required (see .env)");
 const bot = new Bot(token);
 
 const MENU_TEXT = `👋 Добрый день! Я FAQ-бот платформы <b>WorkDo</b>.
-Расскажу о тарифах, возможностях и демо. Выберите, что интересно:`;
+Расскажу о тарифах, возможностях и платформе. Выберите, что интересно:`;
 
 const mainMenu = new InlineKeyboard()
   .text("📊 Тарифы", "prices")
@@ -19,15 +19,15 @@ const mainMenu = new InlineKeyboard()
 
 const backMenu = new InlineKeyboard().text("⬅️ В меню", "menu");
 
-async function showMenu(ctx: any, chatId: number) {
+async function showMenu(ctx: Context, chatId: number) {
   await ctx.api.sendMessage(chatId, MENU_TEXT, { parse_mode: "HTML", reply_markup: mainMenu });
 }
 
-bot.command("start", async (ctx) => {
-  await showMenu(ctx, ctx.chat.id);
+bot.command("start", async (ctx: Context) => {
+  await showMenu(ctx, ctx.chat!.id);
 });
 
-bot.command("help", async (ctx) => {
+bot.command("help", async (ctx: Context) => {
   await ctx.reply(
     `Я отвечаю на вопросы о <b>WorkDo</b>.\n\n` +
       `Команды:\n` +
@@ -39,26 +39,26 @@ bot.command("help", async (ctx) => {
   );
 });
 
-bot.command(["prices", "tariffs"], (ctx) => ctx.reply(ANSWERS.prices, { parse_mode: "HTML", reply_markup: backMenu }));
-bot.command("features", (ctx) => ctx.reply(ANSWERS.features, { parse_mode: "HTML", reply_markup: backMenu }));
-bot.command("about", (ctx) => ctx.reply(ANSWERS.about, { parse_mode: "HTML", reply_markup: backMenu }));
+bot.command(["prices", "tariffs"], (ctx: Context) => ctx.reply(ANSWERS.prices, { parse_mode: "HTML", reply_markup: backMenu }));
+bot.command("features", (ctx: Context) => ctx.reply(ANSWERS.features, { parse_mode: "HTML", reply_markup: backMenu }));
+bot.command("about", (ctx: Context) => ctx.reply(ANSWERS.about, { parse_mode: "HTML", reply_markup: backMenu }));
 
 const answers = new Set<AnswerKey>(["prices", "features", "about"]);
 
-bot.callbackQuery("menu", async (ctx) => {
+bot.callbackQuery("menu", async (ctx: Context) => {
   await ctx.answerCallbackQuery();
   await ctx.editMessageText(MENU_TEXT, { parse_mode: "HTML", reply_markup: mainMenu });
 });
 
-bot.on("callback_query:data", async (ctx) => {
-  const key = ctx.callbackQuery.data as AnswerKey;
+bot.on("callback_query:data", async (ctx: Context) => {
+  const key = ctx.callbackQuery!.data as AnswerKey;
   if (!answers.has(key)) return;
   await ctx.answerCallbackQuery();
   await ctx.editMessageText(ANSWERS[key], { parse_mode: "HTML", reply_markup: backMenu });
 });
 
-bot.on("message:text", async (ctx) => {
-  const text = ctx.message.text.trim();
+bot.on("message:text", async (ctx: Context) => {
+  const text = ctx.message!.text!.trim();
   for (const entry of KEYWORD_REPLIES) {
     if (entry.triggers.some((rx) => rx.test(text))) {
       await ctx.reply(ANSWERS[entry.key], { parse_mode: "HTML", reply_markup: backMenu });
@@ -68,7 +68,7 @@ bot.on("message:text", async (ctx) => {
   await ctx.reply(ANSWERS.fallback, { parse_mode: "HTML", reply_markup: backMenu });
 });
 
-bot.catch((err) => {
+bot.catch((err: BotError) => {
   console.error("[bot error]", err.message ?? err);
 });
 
