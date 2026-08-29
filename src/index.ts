@@ -1,9 +1,28 @@
 import "dotenv/config";
 import express from "express";
+import fs from "node:fs";
+import path from "node:path";
 import { Bot, type BotError, type Context, InlineKeyboard, webhookCallback } from "grammy";
 import { ANSWERS, KEYWORD_REPLIES, type AnswerKey } from "./faq";
 
-const token = process.env.BOT_TOKEN;
+function loadConfig() {
+  let file: Record<string, string> = {};
+  try {
+    file = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "bot.config.json"), "utf8"));
+  } catch {
+    // bot.config.json optional when env vars are set
+  }
+  const pick = (k: string) => process.env[k] || file[k] || "";
+  return {
+    BOT_TOKEN: pick("BOT_TOKEN"),
+    WEBHOOK_URL: pick("WEBHOOK_URL"),
+    WEBHOOK_SECRET: pick("WEBHOOK_SECRET"),
+  };
+}
+
+const cfg = loadConfig();
+
+const token = cfg.BOT_TOKEN;
 if (!token)
   throw new Error(
     "BOT_TOKEN is required. Add it on Render: Settings -> Environment -> BOT_TOKEN (and WEBHOOK_URL, WEBHOOK_SECRET), then redeploy."
@@ -75,10 +94,10 @@ bot.catch((err: BotError) => {
   console.error("[bot error]", err.message ?? err);
 });
 
-const publicUrl = process.env.WEBHOOK_URL;
+const publicUrl = cfg.WEBHOOK_URL;
 
 if (publicUrl) {
-  const secret = process.env.WEBHOOK_SECRET ?? "";
+  const secret = cfg.WEBHOOK_SECRET || "";
   const hookPath = process.env.HOOK_PATH ?? "/webhook";
   const url = secret ? `${publicUrl}${hookPath}/${secret}` : `${publicUrl}${hookPath}`;
 
