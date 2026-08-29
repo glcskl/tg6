@@ -15,9 +15,6 @@ const mainMenu = new InlineKeyboard()
   .text("📊 Тарифы", "prices")
   .text("⚙️ Возможности", "features")
   .row()
-  .text("🎁 Попробовать бесплатно", "trial")
-  .text("📞 Демо", "demo")
-  .row()
   .text("ℹ️ О платформе", "about");
 
 const backMenu = new InlineKeyboard().text("⬅️ В меню", "menu");
@@ -36,8 +33,7 @@ bot.command("help", async (ctx) => {
       `Команды:\n` +
       `/prices — тарифы (BYN)\n` +
       `/features — возможности\n` +
-      `/trial — пробный период\n` +
-      `/demo — демонстрация\n` +
+      `/about — о платформе\n` +
       `/help — эта справка`,
     { parse_mode: "HTML" }
   );
@@ -45,11 +41,9 @@ bot.command("help", async (ctx) => {
 
 bot.command(["prices", "tariffs"], (ctx) => ctx.reply(ANSWERS.prices, { parse_mode: "HTML", reply_markup: backMenu }));
 bot.command("features", (ctx) => ctx.reply(ANSWERS.features, { parse_mode: "HTML", reply_markup: backMenu }));
-bot.command("trial", (ctx) => ctx.reply(ANSWERS.trial, { parse_mode: "HTML", reply_markup: backMenu }));
-bot.command("demo", (ctx) => ctx.reply(ANSWERS.demo, { parse_mode: "HTML", reply_markup: backMenu }));
 bot.command("about", (ctx) => ctx.reply(ANSWERS.about, { parse_mode: "HTML", reply_markup: backMenu }));
 
-const answers = new Set<AnswerKey>(["prices", "features", "trial", "demo", "about"]);
+const answers = new Set<AnswerKey>(["prices", "features", "about"]);
 
 bot.callbackQuery("menu", async (ctx) => {
   await ctx.answerCallbackQuery();
@@ -74,6 +68,10 @@ bot.on("message:text", async (ctx) => {
   await ctx.reply(ANSWERS.fallback, { parse_mode: "HTML", reply_markup: backMenu });
 });
 
+bot.catch((err) => {
+  console.error("[bot error]", err.message ?? err);
+});
+
 const publicUrl = process.env.WEBHOOK_URL;
 
 if (publicUrl) {
@@ -92,6 +90,7 @@ if (publicUrl) {
       const ok = await bot.api.setWebhook(url, {
         secret_token: secret || undefined,
         allowed_updates: ["message", "callback_query"],
+        drop_pending_updates: true,
       });
       console.log(ok ? `[webhook] set: ${url}` : "[webhook] FAILED to set");
     } catch (err) {
@@ -102,6 +101,7 @@ if (publicUrl) {
   (async () => {
     try {
       await bot.init();
+      await bot.api.deleteWebhook({ drop_pending_updates: true });
       console.log(`[polling] @${bot.botInfo.username} started`);
       await bot.start({ allowed_updates: ["message", "callback_query"] });
     } catch (err) {
