@@ -37,7 +37,8 @@ const mainMenu = new InlineKeyboard()
   .text("Тарифы", "prices")
   .text("Возможности", "features")
   .row()
-  .text("О платформе", "about");
+  .text("О платформе", "about")
+  .text("Поддержка", "support");
 
 const backMenu = new InlineKeyboard().text("← В меню", "menu");
 
@@ -56,6 +57,7 @@ bot.command("help", async (ctx: Context) => {
       `/prices — тарифы (BYN)\n` +
       `/features — возможности платформы\n` +
       `/about — о платформе\n` +
+      `/support — контакты поддержки\n` +
       `/help — данная справка`,
     { parse_mode: "HTML" }
   );
@@ -64,8 +66,9 @@ bot.command("help", async (ctx: Context) => {
 bot.command(["prices", "tariffs"], (ctx: Context) => ctx.reply(ANSWERS.prices, { parse_mode: "HTML", reply_markup: backMenu }));
 bot.command("features", (ctx: Context) => ctx.reply(ANSWERS.features, { parse_mode: "HTML", reply_markup: backMenu }));
 bot.command("about", (ctx: Context) => ctx.reply(ANSWERS.about, { parse_mode: "HTML", reply_markup: backMenu }));
+bot.command("support", (ctx: Context) => ctx.reply(ANSWERS.support, { parse_mode: "HTML", reply_markup: backMenu }));
 
-const answers = new Set<AnswerKey>(["prices", "features", "about"]);
+const answers = new Set<AnswerKey>(["prices", "features", "about", "support"]);
 
 bot.callbackQuery("menu", async (ctx: Context) => {
   await ctx.answerCallbackQuery();

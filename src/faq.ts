@@ -1,4 +1,4 @@
-export type AnswerKey = "prices" | "features" | "about" | "fallback";
+export type AnswerKey = "prices" | "features" | "about" | "support" | "fallback";
 
 export const ANSWERS: Record<AnswerKey, string> = {
   prices: `Тарифы WorkDo (BYN)
@@ -54,7 +54,15 @@ API
 • Планомерно развивается с 2016 года
 
 Сайт: <a href="https://workdo.ru">workdo.ru</a>`,
-  fallback: `Не удалось распознать ваш запрос. Воспользуйтесь кнопками меню либо сформулируйте вопрос иначе, например: «стоимость», «тарифы», «возможности».
+  support: `Поддержка WorkDo
+
+Свяжитесь с нами любым удобным способом:
+
+Телефон: +375 (29) 718-48-84
+Email: workdosupport@gmail.com
+
+Сайт: <a href="https://workdo.ru">workdo.ru</a>`,
+  fallback: `Не удалось распознать ваш запрос. Воспользуйтесь кнопками меню либо сформулируйте вопрос иначе, например: «стоимость», «тарифы», «возможности», «поддержка».
 
 При необходимости свяжитесь с нами через сайт: <a href="https://workdo.ru">workdo.ru</a>`,
 };
@@ -94,5 +102,9 @@ export const KEYWORD_REPLIES: { key: AnswerKey; triggers: RegExp[] }[] = [
   {
     key: "about",
     triggers: [/что.*workdo/i, /что.*платформ/i, /о (вас|платформе)/i, /кто вы/i, /workdo/i],
+  },
+  {
+    key: "support",
+    triggers: [/поддержк/i, /связ/i, /контакт/i, /звон/i, /телефон/i, /почт/i, /email/i, /мейл/i, /написать/i, /помощ/i, /вопрос/i],
   },
 ];
