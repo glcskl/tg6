@@ -4,7 +4,10 @@ import { Bot, type BotError, type Context, InlineKeyboard, webhookCallback } fro
 import { ANSWERS, KEYWORD_REPLIES, type AnswerKey } from "./faq";
 
 const token = process.env.BOT_TOKEN;
-if (!token) throw new Error("BOT_TOKEN is required (see .env)");
+if (!token)
+  throw new Error(
+    "BOT_TOKEN is required. Add it on Render: Settings -> Environment -> BOT_TOKEN (and WEBHOOK_URL, WEBHOOK_SECRET), then redeploy."
+  );
 
 const bot = new Bot(token);
 
