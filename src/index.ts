@@ -99,6 +99,14 @@ if (publicUrl) {
     }
   });
 } else {
-  bot.start({ allowed_updates: ["message", "callback_query"] });
-  console.log(`[polling] @${bot.botInfo.username} started`);
+  (async () => {
+    try {
+      await bot.init();
+      console.log(`[polling] @${bot.botInfo.username} started`);
+      await bot.start({ allowed_updates: ["message", "callback_query"] });
+    } catch (err) {
+      console.error("[polling] error:", err);
+      process.exit(1);
+    }
+  })();
 }
