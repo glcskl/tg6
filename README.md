@@ -79,6 +79,10 @@ tg6/
 
 Токен бота хранится только в `.env` или в локальном `bot.config.json`, оба файла исключены из Git. В репозитории лежат только шаблоны с заглушками.
 
+## Деплой
+
+Бот развёрнут на Render: **https://workdo-demo-bot.onrender.com** (`/healthz` → `ok`). Webhook Telegram установлен автоматически при старте.
+
 ## Ссылки
 
 - Продукт: [workdo.ru](https://workdo.ru)
