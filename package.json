@@ -1,8 +1,8 @@
 {
-  "name": "workdo-faq-bot",
+  "name": "workdo-demo-bot",
   "version": "1.0.0",
   "private": true,
-  "description": "Telegram FAQ-бот для лендинга WorkDo",
+  "description": "Telegram FAQ and interactive demo bot for WorkDo (tg6)",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

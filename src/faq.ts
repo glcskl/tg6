@@ -1,4 +1,4 @@
-export type AnswerKey = "prices" | "features" | "about" | "support" | "fallback";
+export type AnswerKey = "prices" | "features" | "about" | "support" | "demo" | "fallback";
 
 export const ANSWERS: Record<AnswerKey, string> = {
   prices: `Тарифы WorkDo (BYN)
@@ -62,6 +62,13 @@ API
 Email: workdosupport@gmail.com
 
 Сайт: <a href="https://workdo.ru">workdo.ru</a>`,
+  demo: `Живое демо WorkDo в Telegram
+
+Демо работает прямо в чате, без регистрации и перехода на сайт. Можно переключать роли, открывать разделы, завершать смены, создавать и закрывать инциденты, выгружать отчёты в CSV.
+
+Доступны разделы: обзор, смены, кадры, объекты, инциденты, финансы, отчёты. Права зависят от роли — как в настоящей системе. Данные вымышленные.
+
+Команда: /demo`,
   fallback: `Не удалось распознать ваш запрос. Воспользуйтесь кнопками меню либо сформулируйте вопрос иначе, например: «стоимость», «тарифы», «возможности», «поддержка».
 
 При необходимости свяжитесь с нами через сайт: <a href="https://workdo.ru">workdo.ru</a>`,
@@ -82,6 +89,10 @@ export const KEYWORD_REPLIES: { key: AnswerKey; triggers: RegExp[] }[] = [
       /бизнес/i,
       /премиум/i,
     ],
+  },
+  {
+    key: "demo",
+    triggers: [/демо/i, /демонстрац/i, /попробовать/i, /посмотреть.*работ/i, /живое.*демо/i],
   },
   {
     key: "features",

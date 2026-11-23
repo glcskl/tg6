@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { Bot, type BotError, type Context, InlineKeyboard, webhookCallback } from "grammy";
 import { ANSWERS, KEYWORD_REPLIES, type AnswerKey } from "./faq";
+import { demoCallback, demoText, openDemo } from "./demo";
 
 function loadConfig() {
   let file: Record<string, string> = {};
@@ -38,9 +39,15 @@ const mainMenu = new InlineKeyboard()
   .text("Возможности", "features")
   .row()
   .text("О платформе", "about")
-  .text("Поддержка", "support");
+  .text("Поддержка", "support")
+  .row()
+  .text("Живое демо", "dm:open");
 
 const backMenu = new InlineKeyboard().text("← В меню", "menu");
+const demoMenu = new InlineKeyboard()
+  .text("Открыть демо", "dm:open")
+  .row()
+  .text("← В меню", "menu");
 
 async function showMenu(ctx: Context, chatId: number) {
   await ctx.api.sendMessage(chatId, MENU_TEXT, { parse_mode: "HTML", reply_markup: mainMenu });
@@ -58,6 +65,7 @@ bot.command("help", async (ctx: Context) => {
       `/features — возможности платформы\n` +
       `/about — о платформе\n` +
       `/support — контакты поддержки\n` +
+      `/demo — живое демо WorkDo в Telegram\n` +
       `/help — данная справка`,
     { parse_mode: "HTML" }
   );
@@ -67,26 +75,38 @@ bot.command(["prices", "tariffs"], (ctx: Context) => ctx.reply(ANSWERS.prices, {
 bot.command("features", (ctx: Context) => ctx.reply(ANSWERS.features, { parse_mode: "HTML", reply_markup: backMenu }));
 bot.command("about", (ctx: Context) => ctx.reply(ANSWERS.about, { parse_mode: "HTML", reply_markup: backMenu }));
 bot.command("support", (ctx: Context) => ctx.reply(ANSWERS.support, { parse_mode: "HTML", reply_markup: backMenu }));
+bot.command("demo", (ctx: Context) => openDemo(ctx));
 
-const answers = new Set<AnswerKey>(["prices", "features", "about", "support"]);
+const answers = new Set<AnswerKey>(["prices", "features", "about", "support", "demo"]);
 
 bot.callbackQuery("menu", async (ctx: Context) => {
   await ctx.answerCallbackQuery();
   await ctx.editMessageText(MENU_TEXT, { parse_mode: "HTML", reply_markup: mainMenu });
 });
 
+bot.callbackQuery("dm:a:menu", async (ctx: Context) => {
+  await ctx.answerCallbackQuery();
+  await ctx.editMessageText(MENU_TEXT, { parse_mode: "HTML", reply_markup: mainMenu });
+});
+
 bot.on("callback_query:data", async (ctx: Context) => {
-  const key = ctx.callbackQuery!.data as AnswerKey;
+  const data = ctx.callbackQuery!.data as string;
+  if (await demoCallback(ctx, data)) return;
+  const key = data as AnswerKey;
   if (!answers.has(key)) return;
   await ctx.answerCallbackQuery();
-  await ctx.editMessageText(ANSWERS[key], { parse_mode: "HTML", reply_markup: backMenu });
+  await ctx.editMessageText(ANSWERS[key], { parse_mode: "HTML", reply_markup: key === "demo" ? demoMenu : backMenu });
 });
 
 bot.on("message:text", async (ctx: Context) => {
   const text = ctx.message!.text!.trim();
+  if (await demoText(ctx, text)) return;
   for (const entry of KEYWORD_REPLIES) {
     if (entry.triggers.some((rx) => rx.test(text))) {
-      await ctx.reply(ANSWERS[entry.key], { parse_mode: "HTML", reply_markup: backMenu });
+      await ctx.reply(ANSWERS[entry.key], {
+        parse_mode: "HTML",
+        reply_markup: entry.key === "demo" ? demoMenu : backMenu,
+      });
       return;
     }
   }
