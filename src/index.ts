@@ -38,8 +38,12 @@ if (!token)
 
 const bot = new Bot(token);
 
-const MENU_TEXT = `Добрый день. Это справочный бот платформы <b>WorkDo</b>.
-Содержит информацию о тарифах, возможностях и о платформе. Выберите нужный раздел в меню ниже.`;
+const MENU_TEXT = `Здравствуйте! <b>WorkDo</b> — система управления бизнесом.
+«Бизнес под контролем»: кадры, смены, зарплата, объекты, инциденты, финансы и отчёты — в одной системе.
+
+Тарифы от 6 270 ₽ в месяц. Демо работает в Telegram, без регистрации.
+
+Выберите раздел ниже:`;
 
 const mainMenu = new InlineKeyboard()
   .text("Тарифы", "prices")
@@ -66,6 +70,7 @@ const demoMenu = new InlineKeyboard()
 if (appUrl && appUrl !== "/") {
   demoMenu.row().webApp("Открыть мини-аппу", appUrl);
 }
+demoMenu.row().webApp("Демо", LANDING_URL).url("Сайт", LANDING_URL);
 
 async function showMenu(ctx: Context, chatId: number) {
   await ctx.api.sendMessage(chatId, MENU_TEXT, { parse_mode: "HTML", reply_markup: mainMenu });
@@ -77,16 +82,17 @@ bot.command("start", async (ctx: Context) => {
 
 bot.command("help", async (ctx: Context) => {
   await ctx.reply(
-    `Справочный бот платформы <b>WorkDo</b>.\n\n` +
+    `<b>WorkDo</b> — система управления бизнесом: кадры, смены, зарплата, объекты, инциденты, финансы и отчёты.\n\n` +
       `Команды:\n` +
-      `/prices — тарифы (BYN)\n` +
-      `/features — возможности платформы\n` +
-      `/about — о платформе\n` +
+      `/prices — актуальные тарифы (₽)\n` +
+      `/features — возможности и модули\n` +
+      `/about — о системе и внедрении\n` +
       `/support — контакты поддержки\n` +
       `/demo — живое демо WorkDo в чате\n` +
       `/app — открыть мини-аппу WorkDo\n` +
       `/site — демо и сайт WorkDo\n` +
-      `/help — данная справка`,
+      `/help — данная справка\n\n` +
+      `Кнопки «Демо» и «Сайт» ведут на <a href="${LANDING_URL}">лендинг WorkDo</a>.`,
     { parse_mode: "HTML" }
   );
 });

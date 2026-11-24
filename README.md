@@ -1,16 +1,16 @@
 # WorkDo Demo Bot (tg6)
 
-November 2026, workdo.ru. Task: let potential clients explore WorkDo ERP inside Telegram instead of only on the landing page. Solution: tg6 - a grammY FAQ bot plus a Telegram Mini App with role-based access, seven interactive sections, shifts, incidents, finance, reports, real CSV exports, a guided checklist and webhook hosting on Render.
+November 2026, workdo.ru. Task: let potential clients explore the WorkDo business management system inside Telegram instead of only on the landing page. Solution: tg6 - a grammY FAQ bot plus a Telegram Mini App with role-based access, seven interactive sections, shifts, incidents, finance, reports, real CSV exports, a guided checklist and webhook hosting on Render.
 
-Демо перенесено из публичного лендинга [glcskl/workdo-landing](https://github.com/glcskl/workdo-landing) (`src/App.jsx`, `src/data.js`) и адаптировано под inline-интерфейс Telegram: демо работает и в чате, и в полноэкранной мини-аппе.
+Демо и справочные ответы синхронизированы с актуальным лендингом [glcskl/workdo-landing](https://github.com/glcskl/workdo-landing) (`src/App.jsx`, `src/data.js`): тарифы в ₽, текущие контакты и позиционирование «WorkDo: бизнес под контролем». Демо адаптировано под интерфейс Telegram — работает и в чате, и в полноэкранной мини-аппе.
 
 ## Что умеет
 
 ### Справочная часть
 
-- Меню с inline-кнопками: Тарифы / Возможности / О платформе / Поддержка / Живое демо.
+- Меню с inline-кнопками: Тарифы / Возможности / О платформе / Поддержка / Демо в чате / Демо / Сайт / Открыть мини-аппу.
 - Команды: `/start`, `/help`, `/prices`, `/features`, `/about`, `/support`, `/demo`, `/app`, `/site`.
-- Кнопки «Демо» и «Сайт» ведут на [лендинг WorkDo](https://glcskl.github.io/workdo-landing/): «Демо» открывает его внутри Telegram как Web App, «Сайт» — внешней ссылкой.
+- Кнопки «Демо» и «Сайт» ведут на [лендинг WorkDo](https://glcskl.github.io/workdo-landing/): «Демо» открывает его внутри Telegram как Web App, «Сайт» — внешней ссылкой. Они есть в главном меню, в ответе про демо и после команды `/site`.
 - Ответы по ключевым словам, включая «демо», «стоимость», «тарифы», «возможности», «поддержка».
 - Если вопрос не распознан — подсказка с кнопками меню.
 
@@ -22,7 +22,7 @@ November 2026, workdo.ru. Task: let potential clients explore WorkDo ERP inside 
 
 ### Живое демо WorkDo
 
-Демо открывается командой `/demo` или кнопкой «Живое демо» в главном меню. Это не ссылка на сайт, а интерактивная модель системы внутри чата. Та же модель доступна и в мини-аппе.
+Демо открывается командой `/demo` или кнопкой «Демо в чате» в главном меню. Это не ссылка на сайт, а интерактивная модель системы внутри чата. Та же модель доступна и в мини-аппе; кнопка «Демо» рядом открывает полную версию на лендинге.
 
 - **Роли:** владелец (19 разделов), администратор (17), начальник смены (11), охранник (6). Переключение роли сразу меняет доступные разделы; попытка открыть закрытый раздел показывает сообщение об отказе.
 - **Разделы:** обзор, смены, кадры, объекты, инциденты, финансы, отчёты.
@@ -30,7 +30,7 @@ November 2026, workdo.ru. Task: let potential clients explore WorkDo ERP inside 
 - **Смены:** календарь недели, список смен, кнопки «Добавить смену» и «Завершить» — количество смен и табель меняются прямо в демо.
 - **Инциденты:** создание нового инцидента текстом, перевод в расследование и закрытие. У инцидента есть категория, серьёзность, ущерб и корневая причина.
 - **Финансы:** план/факт по месяцам, бюджет по статьям, выгрузка CSV.
-- **Отчёты:** шесть типов отчётов, каждый присылается настоящим `.csv`-файлом (UTF-8, разделитель `;`), плюс журнал аудита «было → стало».
+- **Отчёты:** шесть типов отчётов, каждый присылается настоящим `.csv`-файлом (UTF-8, разделитель `;`), плюс журнал аудита «было → стало» с записью от системы.
 - **Чек-лист:** четыре действия (роль, смена, инцидент, экспорт) с прогрессом 0/3 — как в демо на лендинге.
 - **Сброс:** состояние демо хранится отдельно для каждого чата и сбрасывается кнопкой «Сбросить демо».
 
@@ -104,5 +104,6 @@ tg6/
 ## Ссылки
 
 - Продукт: [workdo.ru](https://workdo.ru)
+- Демо и лендинг: [glcskl.github.io/workdo-landing](https://glcskl.github.io/workdo-landing/)
 - Исходник демо: [glcskl/workdo-landing](https://github.com/glcskl/workdo-landing)
 - Автор: [@glebentired](https://t.me/glebentired)

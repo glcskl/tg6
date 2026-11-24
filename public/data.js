@@ -96,6 +96,7 @@ window.WORKDO_DATA = {
     { date: '17.11', time: '09:42', who: 'С. Громов', field: 'инцидент · статус', before: 'открыт', after: 'расследуется' },
     { date: '17.11', time: '09:58', who: 'С. Громов', field: 'инцидент · ущерб', before: '0 ₽', after: '12 400 ₽' },
     { date: '17.11', time: '16:05', who: 'М. Ким', field: 'смена · статус', before: 'в работе', after: 'завершена' },
+    { date: '17.11', time: '16:06', who: 'система', field: 'табель · часы', before: '—', after: '12 ч' },
   ],
   reports: [
     { slug: 'shifts', label: 'График смен', rows: '18 строк' },
