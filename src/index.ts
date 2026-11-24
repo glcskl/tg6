@@ -24,6 +24,8 @@ function loadConfig() {
 
 const cfg = loadConfig();
 
+const LANDING_URL = "https://glcskl.github.io/workdo-landing/";
+
 const publicUrl = cfg.WEBHOOK_URL.replace(/\/+$/, "");
 const appUrl = (cfg.MINI_APP_URL || (publicUrl ? `${publicUrl}/app/` : "")).replace(/\/+$/, "") + "/";
 const hookPath = (process.env.HOOK_PATH || "/webhook").replace(/\/+$/, "") || "/webhook";
@@ -46,7 +48,10 @@ const mainMenu = new InlineKeyboard()
   .text("О платформе", "about")
   .text("Поддержка", "support")
   .row()
-  .text("Живое демо", "dm:open");
+  .text("Демо в чате", "dm:open")
+  .row()
+  .webApp("Демо", LANDING_URL)
+  .url("Сайт", LANDING_URL);
 
 if (appUrl && appUrl !== "/") {
   mainMenu.row().webApp("Открыть мини-аппу", appUrl);
@@ -80,6 +85,7 @@ bot.command("help", async (ctx: Context) => {
       `/support — контакты поддержки\n` +
       `/demo — живое демо WorkDo в чате\n` +
       `/app — открыть мини-аппу WorkDo\n` +
+      `/site — демо и сайт WorkDo\n` +
       `/help — данная справка`,
     { parse_mode: "HTML" }
   );
@@ -98,6 +104,14 @@ bot.command("app", async (ctx: Context) => {
   await ctx.reply("Откройте интерактивное демо WorkDo в мини-аппе:", {
     reply_markup: new InlineKeyboard().webApp("Открыть мини-аппу", appUrl),
   });
+});
+
+const landingMenu = new InlineKeyboard()
+  .webApp("Демо", LANDING_URL)
+  .url("Сайт", LANDING_URL);
+
+bot.command("site", async (ctx: Context) => {
+  await ctx.reply("Демо и сайт WorkDo:", { reply_markup: landingMenu });
 });
 
 const answers = new Set<AnswerKey>(["prices", "features", "about", "support", "demo"]);

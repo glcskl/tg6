@@ -9,7 +9,8 @@ November 2026, workdo.ru. Task: let potential clients explore WorkDo ERP inside 
 ### Справочная часть
 
 - Меню с inline-кнопками: Тарифы / Возможности / О платформе / Поддержка / Живое демо.
-- Команды: `/start`, `/help`, `/prices`, `/features`, `/about`, `/support`, `/demo`.
+- Команды: `/start`, `/help`, `/prices`, `/features`, `/about`, `/support`, `/demo`, `/app`, `/site`.
+- Кнопки «Демо» и «Сайт» ведут на [лендинг WorkDo](https://glcskl.github.io/workdo-landing/): «Демо» открывает его внутри Telegram как Web App, «Сайт» — внешней ссылкой.
 - Ответы по ключевым словам, включая «демо», «стоимость», «тарифы», «возможности», «поддержка».
 - Если вопрос не распознан — подсказка с кнопками меню.
 

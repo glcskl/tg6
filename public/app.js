@@ -8,6 +8,7 @@
     tg.expand();
   }
 
+  var LANDING_URL = "https://glcskl.github.io/workdo-landing/";
   var STORAGE_KEY = "workdo-miniapp-state-v1";
   var ROLE_ORDER = ["role", "shift", "incident", "export"];
 
@@ -270,13 +271,17 @@
       '<p class="muted" style="margin-top:8px">Ноябрь: +3,7% к плану.</p>' +
       '<h3>Бюджет</h3><div class="table-wrap"><table><thead><tr><th>Статья</th><th>План</th><th>Факт</th><th>Отклонение</th></tr></thead><tbody>' + budget + "</tbody></table></div>" +
       (state.lastReport ? '<p class="muted" style="margin-top:12px">Последняя выгрузка: ' + esc(state.lastReport) + "</p>" : "") +
-      '<div class="item-actions" style="margin-top:12px"><button type="button" class="btn primary" data-action="csv:finance">Выгрузить CSV</button></div>';
+      '<div class="item-actions" style="margin-top:12px">' +
+        '<button type="button" class="btn primary" data-action="csv:finance">Выгрузить CSV</button>' +
+        '<button type="button" class="btn ghost" data-action="csvcopy:finance">Скопировать CSV</button>' +
+        '</div>';
   }
 
   function reports() {
     var cards = D.reports.map(function (report) {
       return '<div class="report"><div><div class="item-title">' + esc(report.label) + '</div><div class="report-rows">' + esc(report.rows) + '</div></div>' +
-        '<button type="button" class="btn small primary" data-action="csv:' + report.slug + '">Скачать CSV</button></div>';
+        '<button type="button" class="btn small primary" data-action="csv:' + report.slug + '">Скачать CSV</button>' +
+        '<button type="button" class="btn small ghost" data-action="csvcopy:' + report.slug + '">Копировать</button></div>';
     }).join("");
     var audit = D.audit.map(function (item) {
       return '<div class="stat-line"><span class="label">' + esc(item.date + " " + item.time) + " · " + esc(item.who) + "</span>" +
@@ -405,6 +410,34 @@
     toast(report.label + " выгружен в CSV · UTF-8, разделитель «;»");
   }
 
+  function copyCsv(slug) {
+    var report = reportRows(slug);
+    var content = makeCsv(report.rows);
+    var done = function () {
+      state.exported = true;
+      state.lastReport = report.label;
+      mark("export");
+      save();
+      renderChecklist();
+      renderContent();
+      toast(report.label + " скопирован в буфер · UTF-8, разделитель «;»");
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(content).then(done, function () { toast("Не удалось скопировать CSV"); });
+      return;
+    }
+    var area = document.createElement("textarea");
+    area.value = content;
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+    var ok = document.execCommand && document.execCommand("copy");
+    document.body.removeChild(area);
+    if (ok) done();
+    else toast("Не удалось скопировать CSV");
+  }
+
   function openModal() {
     state.modalOpen = true;
     els.incidentTitle.value = "";
@@ -511,6 +544,11 @@
       }
     } else if (action.indexOf("csv:") === 0) {
       downloadCsv(action.slice(4));
+    } else if (action.indexOf("csvcopy:") === 0) {
+      copyCsv(action.slice(8));
+    } else if (action.indexOf("link:") === 0) {
+      if (tg && tg.openLink) tg.openLink(LANDING_URL);
+      else window.open(LANDING_URL, "_blank", "noopener");
     }
   });
 
