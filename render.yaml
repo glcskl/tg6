@@ -15,3 +15,5 @@ services:
         sync: false
       - key: HOOK_PATH
         value: /webhook
+      - key: MINI_APP_URL
+        sync: false

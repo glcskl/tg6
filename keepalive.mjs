@@ -1,9 +1,9 @@
 // Keep-alive пингер для Render (бесплатный тариф засыпает без входящих запросов).
 // Запуск: node keepalive.mjs
-// ENV: PING_URL (по умолчанию https://workdo.onrender.com/healthz),
+// ENV: PING_URL (по умолчанию https://workdo-demo-bot.onrender.com/healthz),
 //      PING_INTERVAL_MIN (по умолчанию 10).
 
-const url = process.env.PING_URL ?? "https://workdo.onrender.com/healthz";
+const url = process.env.PING_URL ?? "https://workdo-demo-bot.onrender.com/healthz";
 const intervalMs = (Number(process.env.PING_INTERVAL_MIN ?? 10) || 10) * 60 * 1000;
 
 async function ping() {

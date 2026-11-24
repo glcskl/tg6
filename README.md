@@ -1,8 +1,8 @@
 # WorkDo Demo Bot (tg6)
 
-November 2026, workdo.ru. Task: let potential clients explore WorkDo ERP inside Telegram instead of only on the landing page. Solution: tg6 - a grammY FAQ and demo bot with role-based access, seven interactive sections, shifts, incidents, finance, reports, real CSV exports, a guided checklist and webhook hosting on Render.
+November 2026, workdo.ru. Task: let potential clients explore WorkDo ERP inside Telegram instead of only on the landing page. Solution: tg6 - a grammY FAQ bot plus a Telegram Mini App with role-based access, seven interactive sections, shifts, incidents, finance, reports, real CSV exports, a guided checklist and webhook hosting on Render.
 
-Демо перенесено из публичного лендинга [glcskl/workdo-landing](https://github.com/glcskl/workdo-landing) (`src/App.jsx`, `src/data.js`) и адаптировано под inline-интерфейс Telegram.
+Демо перенесено из публичного лендинга [glcskl/workdo-landing](https://github.com/glcskl/workdo-landing) (`src/App.jsx`, `src/data.js`) и адаптировано под inline-интерфейс Telegram: демо работает и в чате, и в полноэкранной мини-аппе.
 
 ## Что умеет
 
@@ -13,9 +13,15 @@ November 2026, workdo.ru. Task: let potential clients explore WorkDo ERP inside 
 - Ответы по ключевым словам, включая «демо», «стоимость», «тарифы», «возможности», «поддержка».
 - Если вопрос не распознан — подсказка с кнопками меню.
 
+### Telegram Mini App
+
+Команда `/app` или кнопка «Открыть мини-аппу» открывает полноэкранное демо WorkDo внутри Telegram. Оно работает на Telegram Web App SDK: подстраивается под тему клиента, использует `MainButton`, `HapticFeedback`, `showPopup` и `close`, а состояние хранится в `localStorage`.
+
+Мини-аппа доступна и по прямой ссылке `https://workdo-demo-bot.onrender.com/app/` — в обычном браузере она тоже работает (без вызовов Telegram SDK).
+
 ### Живое демо WorkDo
 
-Демо открывается командой `/demo` или кнопкой «Живое демо» в главном меню. Это не ссылка на сайт, а интерактивная модель системы внутри чата.
+Демо открывается командой `/demo` или кнопкой «Живое демо» в главном меню. Это не ссылка на сайт, а интерактивная модель системы внутри чата. Та же модель доступна и в мини-аппе.
 
 - **Роли:** владелец (19 разделов), администратор (17), начальник смены (11), охранник (6). Переключение роли сразу меняет доступные разделы; попытка открыть закрытый раздел показывает сообщение об отказе.
 - **Разделы:** обзор, смены, кадры, объекты, инциденты, финансы, отчёты.
@@ -31,7 +37,7 @@ November 2026, workdo.ru. Task: let potential clients explore WorkDo ERP inside 
 
 ## Стек
 
-Node.js 18+, TypeScript, grammY, Express. В проде — webhook на Render, локально — long polling.
+Node.js 18+, TypeScript, grammY, Express. Мини-аппа — ванильный HTML/CSS/JS без сборки (Telegram Web App SDK). В проде — webhook на Render, локально — long polling.
 
 ## Запуск локально
 
@@ -41,6 +47,8 @@ cp .env.example .env
 # заполните BOT_TOKEN, полученный от @BotFather
 npm run dev      # или: npm run build && npm start
 ```
+
+После запуска мини-аппа открывается на `http://localhost:3000/app/`. Бот при локальном запуске работает через long polling и сам снимет webhook с прода.
 
 Альтернатива без `.env`: скопируйте `bot.config.example.json` в `bot.config.json` и заполните поля. Файл `bot.config.json` добавлен в `.gitignore` и никогда не попадает в репозиторий.
 
@@ -53,20 +61,29 @@ npm run dev      # или: npm run build && npm start
    - `BOT_TOKEN` — токен от @BotFather;
    - `WEBHOOK_URL` — `https://<имя-сервиса>.onrender.com`;
    - `WEBHOOK_SECRET` — случайная строка для защиты вебхука;
-   - `HOOK_PATH` — необязательно, по умолчанию `/webhook`.
-5. После деплоя откройте `/healthz` — ответ должен быть `ok`.
-6. Напишите боту `/start` и `/demo`.
+   - `HOOK_PATH` — необязательно, по умолчанию `/webhook`;
+   - `MINI_APP_URL` — необязательно, по умолчанию `WEBHOOK_URL + /app/`.
+5. После деплоя откройте `/healthz` — ответ должен быть `ok`, а `/app/` — мини-аппу.
+6. Напишите боту `/start`, `/demo` и `/app`.
 
-Для бесплатного тарифа Render можно запускать `npm run keepalive` отдельно или добавить внешний мониторинг на `/healthz`.
+Бесплатный тариф Render засыпает без входящих запросов, поэтому в репозитории есть `.github/workflows/keepalive.yml`: GitHub Actions пингует `/healthz` и `/app/` каждые 5 минут. Альтернатива — `npm run keepalive` на отдельном always-on хосте (по умолчанию пингует `https://workdo-demo-bot.onrender.com/healthz`).
+
+Если бот «не отвечает», сначала проверьте `GET /healthz`: код 503/502 с заголовком `x-render-routing: no-deploy` означает, что инстанс Render ещё просыпается или перезапускается, а не ошибку в коде бота.
 
 ## Структура
 
 ```text
 tg6/
 ├── src/
-│   ├── index.ts      # команды, меню, webhook/polling, маршрутизация callback-кнопок
-│   ├── demo.ts       # состояние, данные, экраны и действия демо, генерация CSV
+│   ├── index.ts      # команды, меню, webhook/polling, раздача мини-аппы
+│   ├── demo.ts       # состояние, данные, экраны и действия демо в чате, генерация CSV
 │   └── faq.ts        # тексты ответов и ключевые слова
+├── public/
+│   ├── index.html    # каркас мини-аппы
+│   ├── styles.css    # тема Telegram + адаптивная вёрстка
+│   ├── data.js       # данные демо (синхронизированы с src/demo.ts)
+│   └── app.js        # логика мини-аппы: роли, разделы, CSV, localStorage
+├── .github/workflows/keepalive.yml  # пинг Render каждые 5 минут
 ├── keepalive.mjs     # пингер для Render
 ├── bot.config.example.json
 ├── .env.example

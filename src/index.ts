@@ -18,10 +18,15 @@ function loadConfig() {
     BOT_TOKEN: pick("BOT_TOKEN"),
     WEBHOOK_URL: pick("WEBHOOK_URL"),
     WEBHOOK_SECRET: pick("WEBHOOK_SECRET"),
+    MINI_APP_URL: pick("MINI_APP_URL"),
   };
 }
 
 const cfg = loadConfig();
+
+const publicUrl = cfg.WEBHOOK_URL.replace(/\/+$/, "");
+const appUrl = (cfg.MINI_APP_URL || (publicUrl ? `${publicUrl}/app/` : "")).replace(/\/+$/, "") + "/";
+const hookPath = (process.env.HOOK_PATH || "/webhook").replace(/\/+$/, "") || "/webhook";
 
 const token = cfg.BOT_TOKEN;
 if (!token)
@@ -43,11 +48,19 @@ const mainMenu = new InlineKeyboard()
   .row()
   .text("Живое демо", "dm:open");
 
+if (appUrl && appUrl !== "/") {
+  mainMenu.row().webApp("Открыть мини-аппу", appUrl);
+}
+
 const backMenu = new InlineKeyboard().text("← В меню", "menu");
 const demoMenu = new InlineKeyboard()
   .text("Открыть демо", "dm:open")
   .row()
   .text("← В меню", "menu");
+
+if (appUrl && appUrl !== "/") {
+  demoMenu.row().webApp("Открыть мини-аппу", appUrl);
+}
 
 async function showMenu(ctx: Context, chatId: number) {
   await ctx.api.sendMessage(chatId, MENU_TEXT, { parse_mode: "HTML", reply_markup: mainMenu });
@@ -65,7 +78,8 @@ bot.command("help", async (ctx: Context) => {
       `/features — возможности платформы\n` +
       `/about — о платформе\n` +
       `/support — контакты поддержки\n` +
-      `/demo — живое демо WorkDo в Telegram\n` +
+      `/demo — живое демо WorkDo в чате\n` +
+      `/app — открыть мини-аппу WorkDo\n` +
       `/help — данная справка`,
     { parse_mode: "HTML" }
   );
@@ -76,6 +90,15 @@ bot.command("features", (ctx: Context) => ctx.reply(ANSWERS.features, { parse_mo
 bot.command("about", (ctx: Context) => ctx.reply(ANSWERS.about, { parse_mode: "HTML", reply_markup: backMenu }));
 bot.command("support", (ctx: Context) => ctx.reply(ANSWERS.support, { parse_mode: "HTML", reply_markup: backMenu }));
 bot.command("demo", (ctx: Context) => openDemo(ctx));
+bot.command("app", async (ctx: Context) => {
+  if (!appUrl || appUrl === "/") {
+    await ctx.reply("Мини-аппа ещё не настроена. Задайте MINI_APP_URL или WEBHOOK_URL на сервере.");
+    return;
+  }
+  await ctx.reply("Откройте интерактивное демо WorkDo в мини-аппе:", {
+    reply_markup: new InlineKeyboard().webApp("Открыть мини-аппу", appUrl),
+  });
+});
 
 const answers = new Set<AnswerKey>(["prices", "features", "about", "support", "demo"]);
 
@@ -117,36 +140,70 @@ bot.catch((err: BotError) => {
   console.error("[bot error]", err.message ?? err);
 });
 
-const publicUrl = cfg.WEBHOOK_URL;
+async function setupMenuButton() {
+  if (!appUrl || appUrl === "/") return;
+  try {
+    await bot.api.setChatMenuButton({
+      menu_button: { type: "web_app", text: "Мини-аппа", web_app: { url: appUrl } },
+    });
+    console.log(`[menu button] set: ${appUrl}`);
+  } catch (err) {
+    console.error("[menu button] error:", err);
+  }
+}
 
 if (publicUrl) {
   const secret = cfg.WEBHOOK_SECRET || "";
-  const hookPath = process.env.HOOK_PATH ?? "/webhook";
   const url = secret ? `${publicUrl}${hookPath}/${secret}` : `${publicUrl}${hookPath}`;
 
   const app = express();
   app.use(express.json());
   app.get("/healthz", (_req, res) => res.send("ok"));
-  app.use(webhookCallback(bot, "express", { secretToken: secret || undefined }));
+  app.get("/", (_req, res) => res.redirect("/app/"));
+  app.use("/app", express.static(path.join(__dirname, "..", "public"), { index: "index.html" }));
 
-  const port = Number(process.env.PORT ?? 3000);
-  app.listen(port, async () => {
+  // В webhook-режиме grammY не перехватывает ошибки middleware сам (это делает
+  // только long polling), поэтому ловим их здесь, иначе процесс падает и Render
+  // перезапускает бота при любой неудачной отправке сообщения.
+  const handleUpdate = webhookCallback(bot, "express", { secretToken: secret || undefined });
+  app.use(hookPath, async (req, res) => {
     try {
-      const ok = await bot.api.setWebhook(url, {
-        secret_token: secret || undefined,
-        allowed_updates: ["message", "callback_query"],
-        drop_pending_updates: true,
-      });
-      console.log(ok ? `[webhook] set: ${url}` : "[webhook] FAILED to set");
+      await handleUpdate(req, res);
     } catch (err) {
-      console.error("[webhook] error:", err);
+      console.error("[webhook error]", err);
+      if (!res.headersSent) res.sendStatus(500);
+      else res.end();
     }
   });
+
+  const port = Number(process.env.PORT ?? 3000);
+  void (async () => {
+    try {
+      await bot.init();
+    } catch (err) {
+      console.error("[bot init] error:", err);
+      process.exit(1);
+    }
+    app.listen(port, async () => {
+      try {
+        const ok = await bot.api.setWebhook(url, {
+          secret_token: secret || undefined,
+          allowed_updates: ["message", "callback_query"],
+          drop_pending_updates: false,
+        });
+        console.log(ok ? `[webhook] set: ${url}` : "[webhook] FAILED to set");
+      } catch (err) {
+        console.error("[webhook] error:", err);
+      }
+      await setupMenuButton();
+    });
+  })();
 } else {
   (async () => {
     try {
       await bot.init();
-      await bot.api.deleteWebhook({ drop_pending_updates: true });
+      await bot.api.deleteWebhook({ drop_pending_updates: false });
+      await setupMenuButton();
       console.log(`[polling] @${bot.botInfo.username} started`);
       await bot.start({ allowed_updates: ["message", "callback_query"] });
     } catch (err) {
