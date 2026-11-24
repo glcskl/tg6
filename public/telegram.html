@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>WorkDo — демо</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      }
+
+      #demo {
+        display: block;
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        border: 0;
+        background: #fff;
+      }
+
+      #loading {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: #fff;
+        color: #17212b;
+        font-size: 14px;
+        transition: opacity .2s ease;
+        z-index: 2;
+      }
+
+      #loading.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #browserClose {
+        position: fixed;
+        top: calc(12px + env(safe-area-inset-top));
+        right: 12px;
+        z-index: 3;
+        border: 0;
+        border-radius: 999px;
+        padding: 8px 14px;
+        background: rgba(23, 33, 43, .86);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
+      }
+
+      body.in-telegram #browserClose { display: none; }
+    </style>
+  </head>
+  <body>
+    <div id="loading">Загружаем демо WorkDo…</div>
+    <button id="browserClose" type="button">Закрыть</button>
+    <iframe
+      id="demo"
+      src="https://glcskl.github.io/workdo-landing/"
+      title="WorkDo — настоящее демо"
+      allow="fullscreen; clipboard-write"
+      loading="eager"
+    ></iframe>
+
+    <script>
+      (function () {
+        "use strict";
+
+        var tg = window.Telegram && window.Telegram.WebApp;
+        var loading = document.getElementById("loading");
+        var frame = document.getElementById("demo");
+        var browserClose = document.getElementById("browserClose");
+
+        frame.addEventListener("load", function () {
+          loading.classList.add("hidden");
+        });
+
+        function close() {
+          if (tg && tg.close) tg.close();
+          else if (window.history.length > 1) window.history.back();
+          else window.close();
+        }
+
+        browserClose.addEventListener("click", close);
+
+        if (tg) {
+          document.body.classList.add("in-telegram");
+          tg.ready();
+          tg.expand();
+
+          if (tg.setHeaderColor) tg.setHeaderColor("#ffffff");
+          if (tg.setBackgroundColor) tg.setBackgroundColor("#ffffff");
+
+          if (tg.BackButton) {
+            tg.BackButton.onEvent(close);
+            tg.BackButton.show();
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>

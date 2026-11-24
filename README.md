@@ -8,7 +8,7 @@ November 2026, workdo.ru. Task: let potential clients explore the WorkDo busines
 
 ### Справочная часть
 
-- Меню с inline-кнопками: Тарифы / Возможности / О платформе / Поддержка / Демо в чате / Демо / Сайт / Открыть мини-аппу.
+- Меню с inline-кнопками: Тарифы / Возможности / О платформе / Поддержка / Демо в чате / Демо / Сайт. Нижняя кнопка бота тоже открывает демо.
 - Команды: `/start`, `/help`, `/prices`, `/features`, `/about`, `/support`, `/demo`, `/app`, `/site`.
 - Кнопки «Демо» и «Сайт» ведут на [лендинг WorkDo](https://glcskl.github.io/workdo-landing/): «Демо» открывает его внутри Telegram как Web App, «Сайт» — внешней ссылкой. Они есть в главном меню, в ответе про демо и после команды `/site`.
 - Ответы по ключевым словам, включая «демо», «стоимость», «тарифы», «возможности», «поддержка».
@@ -16,9 +16,11 @@ November 2026, workdo.ru. Task: let potential clients explore the WorkDo busines
 
 ### Telegram Mini App
 
-Команда `/app` или кнопка «Открыть мини-аппу» открывает полноэкранное демо WorkDo внутри Telegram. Оно работает на Telegram Web App SDK: подстраивается под тему клиента, использует `MainButton`, `HapticFeedback`, `showPopup` и `close`, а состояние хранится в `localStorage`.
+Кнопка «Демо» в меню бота, нижняя кнопка бота и команда `/app` открывают **настоящий демо-лендинг** `https://glcskl.github.io/workdo-landing/` внутри полноэкранной Telegram Mini App. Страница `public/telegram.html` подключает Telegram Web App SDK, вызывает `ready()` и `expand()`, показывает нативную кнопку «Назад» для закрытия и загружает лендинг в iframe на всю высоту экрана.
 
-Мини-аппа доступна и по прямой ссылке `https://workdo-demo-bot.onrender.com/app/` — в обычном браузере она тоже работает (без вызовов Telegram SDK).
+Кнопка «Сайт» ведёт на тот же адрес обычной внешней ссылкой. Команда `/demo` и кнопка «Демо в чате» открывают упрощённую интерактивную модель внутри переписки.
+
+Mini app доступна и по прямой ссылке `https://workdo-demo-bot.onrender.com/app/`; в обычном браузере вместо нативной кнопки показывается «Закрыть».
 
 ### Живое демо WorkDo
 
@@ -80,10 +82,11 @@ tg6/
 │   ├── demo.ts       # состояние, данные, экраны и действия демо в чате, генерация CSV
 │   └── faq.ts        # тексты ответов и ключевые слова
 ├── public/
-│   ├── index.html    # каркас мини-аппы
-│   ├── styles.css    # тема Telegram + адаптивная вёрстка
-│   ├── data.js       # данные демо (синхронизированы с src/demo.ts)
-│   └── app.js        # логика мини-аппы: роли, разделы, CSV, localStorage
+│   ├── telegram.html # мини-аппа: Telegram SDK + настоящий лендинг в iframe
+│   ├── index.html    # упрощённое демо в чате/браузере (legacy)
+│   ├── styles.css    # стили упрощённого демо
+│   ├── data.js       # данные упрощённого демо (синхронизированы с src/demo.ts)
+│   └── app.js        # логика упрощённого демо: роли, разделы, CSV, localStorage
 ├── .github/workflows/keepalive.yml  # пинг Render каждые 5 минут
 ├── keepalive.mjs     # пингер для Render
 ├── bot.config.example.json

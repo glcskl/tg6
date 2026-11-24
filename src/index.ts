@@ -28,6 +28,7 @@ const LANDING_URL = "https://glcskl.github.io/workdo-landing/";
 
 const publicUrl = cfg.WEBHOOK_URL.replace(/\/+$/, "");
 const appUrl = (cfg.MINI_APP_URL || (publicUrl ? `${publicUrl}/app/` : "")).replace(/\/+$/, "") + "/";
+const demoAppUrl = appUrl && appUrl !== "/" ? appUrl : LANDING_URL;
 const hookPath = (process.env.HOOK_PATH || "/webhook").replace(/\/+$/, "") || "/webhook";
 
 const token = cfg.BOT_TOKEN;
@@ -54,12 +55,8 @@ const mainMenu = new InlineKeyboard()
   .row()
   .text("Демо в чате", "dm:open")
   .row()
-  .webApp("Демо", LANDING_URL)
+  .webApp("Демо", demoAppUrl)
   .url("Сайт", LANDING_URL);
-
-if (appUrl && appUrl !== "/") {
-  mainMenu.row().webApp("Открыть мини-аппу", appUrl);
-}
 
 const backMenu = new InlineKeyboard().text("← В меню", "menu");
 const demoMenu = new InlineKeyboard()
@@ -67,10 +64,7 @@ const demoMenu = new InlineKeyboard()
   .row()
   .text("← В меню", "menu");
 
-if (appUrl && appUrl !== "/") {
-  demoMenu.row().webApp("Открыть мини-аппу", appUrl);
-}
-demoMenu.row().webApp("Демо", LANDING_URL).url("Сайт", LANDING_URL);
+demoMenu.row().webApp("Демо", demoAppUrl).url("Сайт", LANDING_URL);
 
 async function showMenu(ctx: Context, chatId: number) {
   await ctx.api.sendMessage(chatId, MENU_TEXT, { parse_mode: "HTML", reply_markup: mainMenu });
@@ -89,7 +83,7 @@ bot.command("help", async (ctx: Context) => {
       `/about — о системе и внедрении\n` +
       `/support — контакты поддержки\n` +
       `/demo — живое демо WorkDo в чате\n` +
-      `/app — открыть мини-аппу WorkDo\n` +
+      `/app — открыть демо в мини-аппе WorkDo\n` +
       `/site — демо и сайт WorkDo\n` +
       `/help — данная справка\n\n` +
       `Кнопки «Демо» и «Сайт» ведут на <a href="${LANDING_URL}">лендинг WorkDo</a>.`,
@@ -103,17 +97,13 @@ bot.command("about", (ctx: Context) => ctx.reply(ANSWERS.about, { parse_mode: "H
 bot.command("support", (ctx: Context) => ctx.reply(ANSWERS.support, { parse_mode: "HTML", reply_markup: backMenu }));
 bot.command("demo", (ctx: Context) => openDemo(ctx));
 bot.command("app", async (ctx: Context) => {
-  if (!appUrl || appUrl === "/") {
-    await ctx.reply("Мини-аппа ещё не настроена. Задайте MINI_APP_URL или WEBHOOK_URL на сервере.");
-    return;
-  }
-  await ctx.reply("Откройте интерактивное демо WorkDo в мини-аппе:", {
-    reply_markup: new InlineKeyboard().webApp("Открыть мини-аппу", appUrl),
+  await ctx.reply("Откройте настоящее демо WorkDo внутри Telegram:", {
+    reply_markup: new InlineKeyboard().webApp("Открыть демо", demoAppUrl),
   });
 });
 
 const landingMenu = new InlineKeyboard()
-  .webApp("Демо", LANDING_URL)
+  .webApp("Демо", demoAppUrl)
   .url("Сайт", LANDING_URL);
 
 bot.command("site", async (ctx: Context) => {
@@ -161,12 +151,11 @@ bot.catch((err: BotError) => {
 });
 
 async function setupMenuButton() {
-  if (!appUrl || appUrl === "/") return;
   try {
     await bot.api.setChatMenuButton({
-      menu_button: { type: "web_app", text: "Мини-аппа", web_app: { url: appUrl } },
+      menu_button: { type: "web_app", text: "Демо", web_app: { url: demoAppUrl } },
     });
-    console.log(`[menu button] set: ${appUrl}`);
+    console.log(`[menu button] set: ${demoAppUrl}`);
   } catch (err) {
     console.error("[menu button] error:", err);
   }
@@ -180,7 +169,7 @@ if (publicUrl) {
   app.use(express.json());
   app.get("/healthz", (_req, res) => res.send("ok"));
   app.get("/", (_req, res) => res.redirect("/app/"));
-  app.use("/app", express.static(path.join(__dirname, "..", "public"), { index: "index.html" }));
+  app.use("/app", express.static(path.join(__dirname, "..", "public"), { index: "telegram.html" }));
 
   // В webhook-режиме grammY не перехватывает ошибки middleware сам (это делает
   // только long polling), поэтому ловим их здесь, иначе процесс падает и Render
